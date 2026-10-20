@@ -1,0 +1,26 @@
+# Deepfake Video Detector — pinned dependencies (all CPU-installable).
+#
+# NOTE on torch: the default torch wheel bundles CUDA and is ~2 GB.
+# For CPU-only install use the PyTorch CPU index instead:
+#   pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+# On Google Colab (recommended for training) torch+torchvision are preinstalled,
+# so skip those two lines there (see notebooks/train_on_colab.ipynb).
+torch==2.4.1
+torchvision==0.19.1
+facenet-pytorch==2.5.3
+opencv-python==4.10.0.84
+numpy==1.26.4
+pillow==10.4.0
+scikit-learn==1.5.2
+matplotlib==3.9.2
+tqdm==4.66.5
+pyyaml==6.0.2
+fastapi==0.115.0
+uvicorn==0.30.6
+python-multipart==0.0.12
+gradio==4.44.1   # only needed for the Hugging Face Spaces demo (app.py)
+# --- pretrained-demo extras (pretrained_demo.py, no training needed) ---
+transformers==4.46.3   # pinned: 5.x needs torch>=2.6; we ship torch 2.4.1+cpu
+safetensors==0.4.5
+huggingface_hub==0.26.2

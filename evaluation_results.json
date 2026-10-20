@@ -1,0 +1,231 @@
+{
+  "caveats": [
+    "The dataset is small (440 still images) and real and fake images come from DIFFERENT sources, so the fitted probe may partly exploit source/style differences (resolution, compression, background) rather than manipulation artefacts alone.",
+    "96.82% is accuracy on THIS held-out test split of THIS dataset. It is not a measured accuracy on arbitrary deepfake videos in the wild.",
+    "Fake images are FaceForensics-style stills from one public dataset; real-world shared videos are compressed and messier.",
+    "The video demo applies the image-fitted probe to MTCNN face crops from video frames (a domain shift); the two bundled sample videos are smoke tests, not an evaluation."
+  ],
+  "dataset": {
+    "fake": {
+      "count": 200,
+      "note": "Candidate HF datasets manjilkarki/deepfake-and-real-images, hamzaboulahia/hardfakevsrealfaces and dima806/deepfake_vs_real_faces were checked and are gated (login required), so they could not be used.",
+      "sources": [
+        "JamieWithofs/Deepfake-and-real-images (HuggingFace, ungated; FaceForensics-style deepfake face images)"
+      ]
+    },
+    "real": {
+      "count": 240,
+      "sources": [
+        "randomuser.me portraits (100 men + 100 women)",
+        "i.pravatar.cc portraits (40)"
+      ]
+    },
+    "split": {
+      "method": "deterministic stratified 50/50 split, seed 42",
+      "test": {
+        "fake": 100,
+        "real": 120,
+        "total": 220
+      },
+      "tuning": {
+        "fake": 100,
+        "real": 120,
+        "total": 220
+      }
+    },
+    "total_images": 440
+  },
+  "evaluation_date": "2026-10-20",
+  "method": {
+    "probe": "Logistic regression (sklearn, StandardScaler, C=0.001) on frozen 768-d SigLIP2 vision pooler embeddings, fitted on the tuning split only.",
+    "selection_rule": "All configuration choices (variant, threshold, probe hyperparameters) were made on the TUNING split only. The chosen configuration was evaluated exactly once on the held-out TEST split.",
+    "variants_scored": [
+      "image as-is",
+      "MTCNN largest-face crop (as-is score as fallback when no face found; face coverage 98.86%)",
+      "test-time augmentation = mean of {original, horizontal flip, 90% centre crop}"
+    ]
+  },
+  "model_under_test": "king1oo1/deepfake-model (SigLIP2, id2label 0=Real, 1=Fake)",
+  "test_results_held_out": {
+    "asis_tuned_threshold": {
+      "accuracy": 0.6636,
+      "confusion": {
+        "fn": 40,
+        "fp": 34,
+        "tn": 86,
+        "tp": 60
+      },
+      "f1": 0.6186,
+      "precision": 0.6383,
+      "recall": 0.6,
+      "threshold": 0.56
+    },
+    "baseline_asis_threshold_0.5": {
+      "accuracy": 0.6727,
+      "confusion": {
+        "fn": 30,
+        "fp": 42,
+        "tn": 78,
+        "tp": 70
+      },
+      "f1": 0.6604,
+      "precision": 0.625,
+      "recall": 0.7,
+      "threshold": 0.5
+    },
+    "baseline_mtcnn_threshold_0.5": {
+      "accuracy": 0.7318,
+      "confusion": {
+        "fn": 14,
+        "fp": 45,
+        "tn": 75,
+        "tp": 86
+      },
+      "f1": 0.7446,
+      "precision": 0.6565,
+      "recall": 0.86,
+      "threshold": 0.5
+    },
+    "headline_chosen_probe": {
+      "accuracy": 0.9682,
+      "confusion": {
+        "fn": 0,
+        "fp": 7,
+        "tn": 113,
+        "tp": 100
+      },
+      "f1": 0.9662,
+      "precision": 0.9346,
+      "recall": 1.0,
+      "threshold": 0.23
+    },
+    "mtcnn_tuned_threshold": {
+      "accuracy": 0.7727,
+      "confusion": {
+        "fn": 19,
+        "fp": 31,
+        "tn": 89,
+        "tp": 81
+      },
+      "f1": 0.7642,
+      "precision": 0.7232,
+      "recall": 0.81,
+      "threshold": 0.61
+    },
+    "tta_tuned_threshold": {
+      "accuracy": 0.6773,
+      "confusion": {
+        "fn": 31,
+        "fp": 40,
+        "tn": 80,
+        "tp": 69
+      },
+      "f1": 0.6603,
+      "precision": 0.633,
+      "recall": 0.69,
+      "threshold": 0.52
+    }
+  },
+  "tuning_results": {
+    "baseline_asis_threshold_0.5": {
+      "accuracy": 0.6773,
+      "confusion": {
+        "fn": 32,
+        "fp": 39,
+        "tn": 81,
+        "tp": 68
+      },
+      "f1": 0.657,
+      "precision": 0.6355,
+      "recall": 0.68
+    },
+    "baseline_mtcnn_threshold_0.5": {
+      "accuracy": 0.7727,
+      "confusion": {
+        "fn": 11,
+        "fp": 39,
+        "tn": 81,
+        "tp": 89
+      },
+      "f1": 0.7807,
+      "precision": 0.6953,
+      "recall": 0.89
+    },
+    "candidates": {
+      "asis": {
+        "tuned_threshold": 0.56,
+        "tuning_accuracy": 0.7
+      },
+      "mtcnn": {
+        "tuned_threshold": 0.61,
+        "tuning_accuracy": 0.7909
+      },
+      "probe": {
+        "C": 0.001,
+        "note": "Tuning accuracy of the probe is measured on the same split it was fitted on, so it is optimistic by construction and is NOT the headline number.",
+        "tuned_threshold": 0.23,
+        "tuning_accuracy": 1.0
+      },
+      "tta": {
+        "tuned_threshold": 0.52,
+        "tuning_accuracy": 0.7136
+      }
+    },
+    "chosen_config": "probe"
+  },
+  "track_a_large_matched_source_benchmark": {
+    "note": "Second, harder benchmark: BOTH classes are 256x256 images from the SAME source (JamieWithofs/Deepfake-and-real-images, official split), so source/style cues are matched. Thresholds and probe were selected/fitted on the 1200-image TRAIN split only; numbers below are on the held-out 600-image TEST split. Full detail: docs/EVALUATION.md section 6.",
+    "dataset": "JamieWithofs/Deepfake-and-real-images (HF) official split",
+    "n_train": 1200,
+    "n_test": 600,
+    "baseline_stock_head@0.5": {
+      "accuracy": 0.7433,
+      "precision": 0.737,
+      "recall": 0.7567,
+      "f1": 0.7467,
+      "confusion": {
+        "tp": 227,
+        "tn": 219,
+        "fp": 81,
+        "fn": 73
+      }
+    },
+    "stock_head_tuned_threshold_0.355": {
+      "accuracy": 0.71,
+      "precision": 0.6591,
+      "recall": 0.87,
+      "f1": 0.75,
+      "confusion": {
+        "tp": 261,
+        "tn": 165,
+        "fp": 135,
+        "fn": 39
+      },
+      "train_accuracy_at_this_threshold": 0.8075
+    },
+    "probe_meanpooled_tuned_threshold_0.215": {
+      "accuracy": 0.765,
+      "precision": 0.7131,
+      "recall": 0.8867,
+      "f1": 0.7905,
+      "confusion": {
+        "tp": 266,
+        "tn": 193,
+        "fp": 107,
+        "fn": 34
+      }
+    },
+    "probe_meanpooled@0.5": {
+      "accuracy": 0.7833,
+      "precision": 0.7623,
+      "recall": 0.8233,
+      "f1": 0.7917,
+      "confusion": {
+        "tp": 247,
+        "tn": 223,
+        "fp": 77,
+        "fn": 53
+      }
+    }
+  }
+}
